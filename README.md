@@ -19,6 +19,37 @@ Google Tasks is great for simple task management, but lacks powerful organizatio
 
 All changes sync bidirectionally with Google Tasks in real time.
 
+## Tasks+ vs Google Tasks
+
+| Feature | Google Tasks | Tasks+ |
+|---------|:-----------:|:------:|
+| Create, edit, complete tasks | Yes | Yes |
+| Multiple task lists | Yes | Yes |
+| Due dates | Yes | Yes |
+| Task descriptions | Yes | Yes |
+| **Tag / hashtag support** | No | Yes |
+| **Filter by tags** | No | Yes |
+| **Search across all lists** | No | Yes |
+| **Search by `#tag`** | No | Yes |
+| **Multi-tag filtering (OR)** | No | Yes |
+| **Sort by name or date** | No | Yes |
+| **Sort ascending / descending** | No | Yes |
+| **Expandable task descriptions inline** | No | Yes |
+| **Clickable URLs in descriptions** | No | Yes |
+| **Show/hide completed tasks toggle** | Partial (per list) | Yes (global) |
+| **Cross-list task view** | No | Yes |
+| **Updated timestamp visible** | No | Yes |
+| **Completed timestamp visible** | No | Yes |
+| **Flow-wrapped list/tag chips** | N/A | Yes |
+| **Keyboard shortcuts** | Limited | `Cmd+N`, `Cmd+R`, `Cmd+Return` |
+| **Optimistic UI updates** | N/A | Yes (instant toggle) |
+| **Desktop native app (macOS)** | Web/mobile only | Yes |
+| Full offline support | Mobile only | No (requires API) |
+| Subtasks | Yes | Not yet |
+| Recurring tasks | Yes | Not yet |
+
+Tasks+ is designed as a **companion**, not a replacement. Both apps read and write to the same Google Tasks data — you can use Tasks+ on your Mac and Google Tasks on your phone seamlessly.
+
 ## Screenshots
 
 | Task List | Tag Filtering | New Task |
