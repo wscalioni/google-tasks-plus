@@ -1,0 +1,388 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		BB000001 /* GoogleTasksPlusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000021; };
+		BB000002 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000022; };
+		BB000003 /* DatabricksTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000023; };
+		BB000004 /* TaskModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000024; };
+		BB000005 /* TagParser.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000025; };
+		BB000006 /* GoogleAuthService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000026; };
+		BB000008 /* GoogleTasksService.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000028; };
+		BB000009 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000029; };
+		BB00000A /* MainTasksView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002A; };
+		BB00000B /* TaskRowView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002B; };
+		BB00000C /* TagChip.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002C; };
+		BB00000D /* FlowLayout.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002D; };
+		BB00000E /* ProfileSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00002E; };
+		BB00000F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BB00002F; };
+		BB000031 /* NewTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000032; };
+		BB000033 /* EditTaskView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000034; };
+		BB000035 /* TaskFormView.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000036; };
+		BB000037 /* NotesHelper.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000038; };
+		BB000039 /* LinkedText.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB00003A; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		BB000020 /* GoogleTasksPlus.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GoogleTasksPlus.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		BB000021 /* GoogleTasksPlusApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTasksPlusApp.swift; sourceTree = "<group>"; };
+		BB000022 /* Config.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Config.swift; sourceTree = "<group>"; };
+		BB000023 /* DatabricksTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabricksTheme.swift; sourceTree = "<group>"; };
+		BB000024 /* TaskModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskModel.swift; sourceTree = "<group>"; };
+		BB000025 /* TagParser.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagParser.swift; sourceTree = "<group>"; };
+		BB000026 /* GoogleAuthService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleAuthService.swift; sourceTree = "<group>"; };
+		BB000028 /* GoogleTasksService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GoogleTasksService.swift; sourceTree = "<group>"; };
+		BB000029 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		BB00002A /* MainTasksView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTasksView.swift; sourceTree = "<group>"; };
+		BB00002B /* TaskRowView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskRowView.swift; sourceTree = "<group>"; };
+		BB00002C /* TagChip.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TagChip.swift; sourceTree = "<group>"; };
+		BB00002D /* FlowLayout.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlowLayout.swift; sourceTree = "<group>"; };
+		BB00002E /* ProfileSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileSheet.swift; sourceTree = "<group>"; };
+		BB00002F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		BB000032 /* NewTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NewTaskView.swift; sourceTree = "<group>"; };
+		BB000034 /* EditTaskView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditTaskView.swift; sourceTree = "<group>"; };
+		BB000036 /* TaskFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskFormView.swift; sourceTree = "<group>"; };
+		BB000038 /* NotesHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesHelper.swift; sourceTree = "<group>"; };
+		BB00003A /* LinkedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkedText.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		BB00004D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		BB000040 = {
+			isa = PBXGroup;
+			children = (
+				BB000041 /* GoogleTasksPlus */,
+				BB000042 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		BB000041 /* GoogleTasksPlus */ = {
+			isa = PBXGroup;
+			children = (
+				BB000021 /* GoogleTasksPlusApp.swift */,
+				BB000022 /* Config.swift */,
+				BB000023 /* DatabricksTheme.swift */,
+				BB000024 /* TaskModel.swift */,
+				BB000025 /* TagParser.swift */,
+				BB000026 /* GoogleAuthService.swift */,
+				BB000028 /* GoogleTasksService.swift */,
+				BB000029 /* ContentView.swift */,
+				BB00002A /* MainTasksView.swift */,
+				BB00002B /* TaskRowView.swift */,
+				BB00002C /* TagChip.swift */,
+				BB00002D /* FlowLayout.swift */,
+				BB00002E /* ProfileSheet.swift */,
+				BB000032 /* NewTaskView.swift */,
+				BB000034 /* EditTaskView.swift */,
+				BB000036 /* TaskFormView.swift */,
+				BB000038 /* NotesHelper.swift */,
+				BB00003A /* LinkedText.swift */,
+				BB00002F /* Assets.xcassets */,
+			);
+			path = GoogleTasksPlus;
+			sourceTree = "<group>";
+		};
+		BB000042 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				BB000020 /* GoogleTasksPlus.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		BB00004F /* GoogleTasksPlus */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = BB000060 /* Build configuration list for PBXNativeTarget "GoogleTasksPlus" */;
+			buildPhases = (
+				BB00004C /* Sources */,
+				BB00004D /* Frameworks */,
+				BB00004E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = GoogleTasksPlus;
+			productName = GoogleTasksPlus;
+			productReference = BB000020 /* GoogleTasksPlus.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		BB000046 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					BB00004F = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = BB00005F /* Build configuration list for PBXProject "GoogleTasksPlus" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = BB000040;
+			productRefGroup = BB000042 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				BB00004F /* GoogleTasksPlus */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		BB00004E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB00000F /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		BB00004C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				BB000001 /* GoogleTasksPlusApp.swift in Sources */,
+				BB000002 /* Config.swift in Sources */,
+				BB000003 /* DatabricksTheme.swift in Sources */,
+				BB000004 /* TaskModel.swift in Sources */,
+				BB000005 /* TagParser.swift in Sources */,
+				BB000006 /* GoogleAuthService.swift in Sources */,
+				BB000008 /* GoogleTasksService.swift in Sources */,
+				BB000009 /* ContentView.swift in Sources */,
+				BB00000A /* MainTasksView.swift in Sources */,
+				BB00000B /* TaskRowView.swift in Sources */,
+				BB00000C /* TagChip.swift in Sources */,
+				BB00000D /* FlowLayout.swift in Sources */,
+				BB00000E /* ProfileSheet.swift in Sources */,
+				BB000031 /* NewTaskView.swift in Sources */,
+				BB000033 /* EditTaskView.swift in Sources */,
+				BB000035 /* TaskFormView.swift in Sources */,
+				BB000037 /* NotesHelper.swift in Sources */,
+				BB000039 /* LinkedText.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		BB00005A /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		BB00005B /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
+			};
+			name = Release;
+		};
+		BB00005C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.googleTasksPlus.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		BB00005D /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = "";
+				GENERATE_INFOPLIST_FILE = YES;
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.googleTasksPlus.app;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SUPPORTED_PLATFORMS = macosx;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		BB00005F /* Build configuration list for PBXProject "GoogleTasksPlus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB00005A /* Debug */,
+				BB00005B /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		BB000060 /* Build configuration list for PBXNativeTarget "GoogleTasksPlus" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				BB00005C /* Debug */,
+				BB00005D /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+
+	};
+	rootObject = BB000046 /* Project object */;
+}
