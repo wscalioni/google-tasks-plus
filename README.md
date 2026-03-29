@@ -1,6 +1,6 @@
 # Tasks+ : Google Tasks, Supercharged
 
-A native macOS app that enhances Google Tasks with tag-based filtering, search, and a modern Databricks-inspired UI.
+A native macOS app that enhances Google Tasks with tag-based filtering, search, and a modern UI.
 
 ![Platform](https://img.shields.io/badge/platform-macOS%2014%2B-blue)
 ![Swift](https://img.shields.io/badge/swift-5.0-orange)
@@ -81,7 +81,7 @@ Tasks+ parses standard `#hashtag` format tags from Google Task descriptions. Sin
 - **Pull to refresh** — `Cmd+R` to sync from Google Tasks
 
 ### UI
-- Databricks-inspired color scheme (red accent `#FF3621`, dark nav `#1B3139`, clean white surfaces)
+- Custom color scheme (red accent `#FF3621`, dark nav `#1B3139`, clean white surfaces)
 - Flow layout for tags and lists — chips wrap to fit window width, no horizontal scrolling
 - Clickable URLs in task descriptions open in default browser
 - Custom app icon with checkmark + tag motif
@@ -160,7 +160,7 @@ Or open `GoogleTasksPlus.xcodeproj` in Xcode and press `Cmd+R`.
 GoogleTasksPlus/
 ├── GoogleTasksPlusApp.swift    # App entry point, window configuration
 ├── Config.swift                # GCP project & API configuration
-├── DatabricksTheme.swift       # Color palette (DB.red, DB.navBackground, etc.)
+├── Theme.swift                 # Color palette (DB.red, DB.navBackground, etc.)
 ├── TaskModel.swift             # Google Tasks API + app data models
 ├── TagParser.swift             # Regex-based #hashtag extraction
 ├── NotesHelper.swift           # Compose notes with tags appended
@@ -210,5 +210,5 @@ MIT
 
 - Built with SwiftUI and SpriteKit
 - Uses Google Tasks REST API
-- UI inspired by the Databricks workspace design system
+- Custom-designed UI theme
 - AI-assisted development by Claude Code
