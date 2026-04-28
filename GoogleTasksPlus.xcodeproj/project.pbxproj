@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		BB000070 /* DatabaseRecords.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000080; };
+		BB000071 /* DatabaseManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000081; };
+		BB000072 /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = BB000091; };
+		BB000073 /* SyncEngine.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000082; };
 		BB000001 /* GoogleTasksPlusApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000021; };
 		BB000002 /* Config.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000022; };
 		BB000003 /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = BB000023; };
@@ -49,6 +53,9 @@
 		BB000036 /* TaskFormView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TaskFormView.swift; sourceTree = "<group>"; };
 		BB000038 /* NotesHelper.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotesHelper.swift; sourceTree = "<group>"; };
 		BB00003A /* LinkedText.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LinkedText.swift; sourceTree = "<group>"; };
+		BB000080 /* DatabaseRecords.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseRecords.swift; sourceTree = "<group>"; };
+		BB000081 /* DatabaseManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DatabaseManager.swift; sourceTree = "<group>"; };
+		BB000082 /* SyncEngine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SyncEngine.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -56,6 +63,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				BB000072 /* GRDB in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -91,6 +99,9 @@
 				BB000036 /* TaskFormView.swift */,
 				BB000038 /* NotesHelper.swift */,
 				BB00003A /* LinkedText.swift */,
+				BB000080 /* DatabaseRecords.swift */,
+				BB000081 /* DatabaseManager.swift */,
+				BB000082 /* SyncEngine.swift */,
 				BB00002F /* Assets.xcassets */,
 			);
 			path = GoogleTasksPlus;
@@ -120,6 +131,9 @@
 			dependencies = (
 			);
 			name = GoogleTasksPlus;
+			packageProductDependencies = (
+				BB000091 /* GRDB */,
+			);
 			productName = GoogleTasksPlus;
 			productReference = BB000020 /* GoogleTasksPlus.app */;
 			productType = "com.apple.product-type.application";
@@ -148,6 +162,9 @@
 				Base,
 			);
 			mainGroup = BB000040;
+			packageReferences = (
+				BB000090 /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
 			productRefGroup = BB000042 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -191,6 +208,9 @@
 				BB000035 /* TaskFormView.swift in Sources */,
 				BB000037 /* NotesHelper.swift in Sources */,
 				BB000039 /* LinkedText.swift in Sources */,
+				BB000070 /* DatabaseRecords.swift in Sources */,
+				BB000071 /* DatabaseManager.swift in Sources */,
+				BB000073 /* SyncEngine.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -382,6 +402,25 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		BB000090 /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		BB000091 /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = BB000090 /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
 
 	};
 	rootObject = BB000046 /* Project object */;

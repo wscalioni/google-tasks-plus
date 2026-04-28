@@ -1,4 +1,5 @@
 import SwiftUI
+import AppKit
 
 struct TaskFormView: View {
     @EnvironmentObject var tasksService: GoogleTasksService
@@ -53,13 +54,36 @@ struct TaskFormView: View {
                     Text("List")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundColor(DB.textSecondary)
-                    Picker("", selection: $selectedListId) {
+                    Menu {
                         ForEach(tasksService.taskLists) { list in
-                            Text(list.title).tag(list.id)
+                            Button(action: { selectedListId = list.id }) {
+                                HStack {
+                                    Text(list.title)
+                                    if selectedListId == list.id {
+                                        Image(systemName: "checkmark")
+                                    }
+                                }
+                            }
                         }
+                    } label: {
+                        HStack {
+                            Text(tasksService.taskLists.first(where: { $0.id == selectedListId })?.title ?? "Select list")
+                                .font(.system(size: 14))
+                                .foregroundColor(DB.textPrimary)
+                            Spacer()
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 11))
+                                .foregroundColor(DB.textSecondary)
+                        }
+                        .padding(10)
+                        .background(DB.surface)
+                        .cornerRadius(8)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 8)
+                                .stroke(DB.border, lineWidth: 1)
+                        )
                     }
-                    .labelsHidden()
-                    .pickerStyle(.menu)
+                    .menuStyle(.borderlessButton)
                 }
 
                 // Due Date
@@ -93,6 +117,33 @@ struct TaskFormView: View {
                             RoundedRectangle(cornerRadius: 8)
                                 .stroke(DB.border, lineWidth: 1)
                         )
+
+                    if hasLinks(in: notes) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text("Links")
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(DB.textSecondary)
+                            ForEach(extractURLs(from: notes), id: \.absoluteString) { url in
+                                Button(action: { NSWorkspace.shared.open(url) }) {
+                                    Text(url.absoluteString)
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.blue)
+                                        .underline()
+                                        .lineLimit(1)
+                                        .truncationMode(.middle)
+                                }
+                                .buttonStyle(.plain)
+                                .onHover { hovering in
+                                    if hovering {
+                                        NSCursor.pointingHand.push()
+                                    } else {
+                                        NSCursor.pop()
+                                    }
+                                }
+                            }
+                        }
+                        .padding(.top, 2)
+                    }
                 }
 
                 // Tags
@@ -174,6 +225,25 @@ struct TaskFormView: View {
                 }
             }
             .padding(20)
+        }
+    }
+
+    private static let urlPattern = try! NSRegularExpression(
+        pattern: #"https?://[^\s<>\]\)]+"#,
+        options: .caseInsensitive
+    )
+
+    private func hasLinks(in text: String) -> Bool {
+        let range = NSRange(location: 0, length: (text as NSString).length)
+        return Self.urlPattern.firstMatch(in: text, range: range) != nil
+    }
+
+    private func extractURLs(from text: String) -> [URL] {
+        let nsText = text as NSString
+        let range = NSRange(location: 0, length: nsText.length)
+        let matches = Self.urlPattern.matches(in: text, range: range)
+        return matches.compactMap { match in
+            URL(string: nsText.substring(with: match.range))
         }
     }
 

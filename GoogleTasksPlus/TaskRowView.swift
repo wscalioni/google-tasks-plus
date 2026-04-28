@@ -2,13 +2,21 @@ import SwiftUI
 
 struct TaskRowView: View {
     let task: TaskItem
+    var isDismissing: Bool = false
+    let taskLists: [GoogleTaskList]
     let onToggle: () -> Void
     let onTagTap: (String) -> Void
+    let onMoveToList: (String) -> Void
+    let onDuplicate: () -> Void
 
     @State private var isExpanded = false
 
     private var hasExpandableContent: Bool {
         !task.notesWithoutTags.isEmpty
+    }
+
+    private var otherLists: [GoogleTaskList] {
+        taskLists.filter { $0.id != task.listId }
     }
 
     var body: some View {
@@ -95,20 +103,36 @@ struct TaskRowView: View {
                                     isExpanded.toggle()
                                 }
                             }) {
-                                HStack(spacing: 3) {
-                                    Text(isExpanded ? "Less" : "More")
-                                        .font(.system(size: 11, weight: .medium))
-                                    Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
-                                        .font(.system(size: 9, weight: .semibold))
-                                }
-                                .foregroundColor(DB.tagText)
-                                .padding(.horizontal, 8)
-                                .padding(.vertical, 3)
-                                .background(DB.tagBackground)
-                                .cornerRadius(4)
+                                actionChip(icon: isExpanded ? "chevron.up" : "chevron.down", label: isExpanded ? "Less" : "More")
                             }
                             .buttonStyle(.plain)
                         }
+
+                        // Move to list menu
+                        if otherLists.count > 0 {
+                            actionChip(icon: "arrow.right.arrow.left", label: "Move")
+                                .overlay {
+                                    Menu {
+                                        ForEach(otherLists) { list in
+                                            Button(list.title) {
+                                                onMoveToList(list.id)
+                                            }
+                                        }
+                                    } label: {
+                                        Color.clear
+                                    }
+                                    .menuStyle(.borderlessButton)
+                                    .menuIndicator(.hidden)
+                                    .opacity(0.01)
+                                }
+                                .fixedSize()
+                        }
+
+                        // Duplicate button
+                        Button(action: onDuplicate) {
+                            actionChip(icon: "doc.on.doc", label: "Duplicate")
+                        }
+                        .buttonStyle(.plain)
                     }
                     .padding(.top, 2)
                 }
@@ -120,6 +144,22 @@ struct TaskRowView: View {
         .background(DB.background)
         .cornerRadius(10)
         .shadow(color: DB.cardShadow, radius: 2, y: 1)
+        .opacity(isDismissing ? 0.4 : 1.0)
+        .scaleEffect(isDismissing ? 0.98 : 1.0)
+    }
+
+    private func actionChip(icon: String, label: String) -> some View {
+        HStack(spacing: 3) {
+            Image(systemName: icon)
+                .font(.system(size: 9, weight: .semibold))
+            Text(label)
+                .font(.system(size: 11, weight: .medium))
+        }
+        .foregroundColor(DB.tagText)
+        .padding(.horizontal, 8)
+        .padding(.vertical, 3)
+        .background(DB.tagBackground)
+        .cornerRadius(4)
     }
 
     private func formatDate(_ date: Date) -> String {

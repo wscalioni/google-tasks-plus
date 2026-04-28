@@ -4,6 +4,8 @@ struct NewTaskView: View {
     @EnvironmentObject var authService: GoogleAuthService
     @EnvironmentObject var tasksService: GoogleTasksService
     @Binding var isPresented: Bool
+    var duplicateFrom: TaskItem? = nil
+    var preselectedListId: String? = nil
 
     @State private var title = ""
     @State private var notes = ""
@@ -79,8 +81,22 @@ struct NewTaskView: View {
         }
         .frame(width: 480, height: 580)
         .onAppear {
-            if selectedListId.isEmpty, let first = tasksService.taskLists.first {
-                selectedListId = first.id
+            if let source = duplicateFrom {
+                title = source.title
+                notes = source.notesWithoutTags
+                selectedListId = source.listId
+                selectedTags = Set(source.tags)
+                if let due = source.due {
+                    hasDueDate = true
+                    dueDate = due
+                }
+            } else if selectedListId.isEmpty {
+                if let preselected = preselectedListId,
+                   tasksService.taskLists.contains(where: { $0.id == preselected }) {
+                    selectedListId = preselected
+                } else if let first = tasksService.taskLists.first {
+                    selectedListId = first.id
+                }
             }
         }
     }

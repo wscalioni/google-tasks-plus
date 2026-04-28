@@ -10,9 +10,13 @@ struct MainTasksView: View {
     @State private var showCompleted = false
     @State private var showingProfile = false
     @State private var showingNewTask = false
+    @State private var duplicatingTask: TaskItem? = nil
     @State private var editingTask: TaskItem? = nil
     @State private var sortField: SortField = .date
     @State private var sortAscending = false
+    @State private var recentlyCompletedIds: Set<String> = []
+    @State private var showingNewList = false
+    @State private var newListName = ""
 
     enum SortField: String, CaseIterable {
         case date = "Date"
@@ -27,7 +31,7 @@ struct MainTasksView: View {
         }
 
         if !showCompleted {
-            tasks = tasks.filter { !$0.isCompleted }
+            tasks = tasks.filter { !$0.isCompleted || recentlyCompletedIds.contains($0.id) }
         }
 
         if !selectedTags.isEmpty {
@@ -105,13 +109,32 @@ struct MainTasksView: View {
                 .frame(width: 360, height: 320)
         }
         .sheet(isPresented: $showingNewTask) {
-            NewTaskView(isPresented: $showingNewTask)
+            NewTaskView(isPresented: $showingNewTask, preselectedListId: selectedList)
+        }
+        .sheet(item: $duplicatingTask) { task in
+            NewTaskView(isPresented: Binding(
+                get: { duplicatingTask != nil },
+                set: { if !$0 { duplicatingTask = nil } }
+            ), duplicateFrom: task)
         }
         .sheet(item: $editingTask) { task in
             EditTaskView(isPresented: Binding(
                 get: { editingTask != nil },
                 set: { if !$0 { editingTask = nil } }
             ), task: task)
+        }
+        .alert("New List", isPresented: $showingNewList) {
+            TextField("List name", text: $newListName)
+            Button("Cancel", role: .cancel) { newListName = "" }
+            Button("Create") {
+                let name = newListName.trimmingCharacters(in: .whitespacesAndNewlines)
+                if !name.isEmpty {
+                    _ = tasksService.createList(title: name)
+                }
+                newListName = ""
+            }
+        } message: {
+            Text("Enter a name for the new task list.")
         }
     }
 
@@ -148,6 +171,27 @@ struct MainTasksView: View {
                 }
                 .buttonStyle(.plain)
                 .keyboardShortcut("n", modifiers: .command)
+
+                // New List
+                Button(action: { showingNewList = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "list.bullet")
+                            .font(.system(size: 12, weight: .bold))
+                        Text("New List")
+                            .font(.system(size: 12, weight: .medium))
+                    }
+                    .foregroundColor(DB.textSecondary)
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(DB.background)
+                    .cornerRadius(6)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 6)
+                            .stroke(DB.border, lineWidth: 1)
+                    )
+                }
+                .buttonStyle(.plain)
+                .keyboardShortcut("l", modifiers: .command)
 
                 // Sort
                 Menu {
@@ -309,10 +353,19 @@ struct MainTasksView: View {
 
     // MARK: - List Filter Bar
 
+    private func incompleteTasks(forListId listId: String?) -> Int {
+        let tasks = tasksService.allTasks.filter { !$0.isCompleted }
+        if let listId = listId {
+            return tasks.filter { $0.listId == listId }.count
+        }
+        return tasks.count
+    }
+
     private var listFilterBar: some View {
         FlowLayout(spacing: 8) {
             ListFilterChip(
                 title: "All Lists",
+                count: incompleteTasks(forListId: nil),
                 isSelected: selectedList == nil,
                 action: { selectedList = nil }
             )
@@ -320,6 +373,7 @@ struct MainTasksView: View {
             ForEach(tasksService.taskLists) { list in
                 ListFilterChip(
                     title: list.title,
+                    count: incompleteTasks(forListId: list.id),
                     isSelected: selectedList == list.id,
                     action: { selectedList = selectedList == list.id ? nil : list.id }
                 )
@@ -337,14 +391,19 @@ struct MainTasksView: View {
         ScrollView {
             LazyVStack(spacing: 6) {
                 ForEach(filteredTasks) { task in
-                    TaskRowView(task: task) {
-                        tasksService.toggleTask(task, authService: authService)
-                    } onTagTap: { tag in
-                        toggleTag(tag)
-                    }
-                    .onTapGesture(count: 2) {
+                    TaskRowView(
+                        task: task,
+                        isDismissing: recentlyCompletedIds.contains(task.id),
+                        taskLists: tasksService.taskLists,
+                        onToggle: { completeTask(task) },
+                        onTagTap: { tag in toggleTag(tag) },
+                        onMoveToList: { listId in moveTask(task, toListId: listId) },
+                        onDuplicate: { duplicatingTask = task }
+                    )
+                    .simultaneousGesture(TapGesture(count: 2).onEnded {
                         editingTask = task
-                    }
+                    })
+                    .transition(.opacity.combined(with: .move(edge: .leading)))
                 }
             }
             .padding(.horizontal, 16)
@@ -373,6 +432,35 @@ struct MainTasksView: View {
                 .buttonStyle(.plain)
             }
             Spacer()
+        }
+    }
+
+    private func moveTask(_ task: TaskItem, toListId: String) {
+        Task {
+            let isoFormatter = ISO8601DateFormatter()
+            isoFormatter.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
+            let dueString = task.due.map { isoFormatter.string(from: $0) }
+            _ = await tasksService.moveTask(
+                task: task,
+                toListId: toListId,
+                title: task.title,
+                notes: task.notes,
+                due: dueString,
+                authService: authService
+            )
+        }
+    }
+
+    private func completeTask(_ task: TaskItem) {
+        let wasCompleted = task.isCompleted
+        tasksService.toggleTask(task, authService: authService)
+        if !wasCompleted {
+            recentlyCompletedIds.insert(task.id)
+            DispatchQueue.main.asyncAfter(deadline: .now() + 2.0) {
+                withAnimation(.easeOut(duration: 0.35)) {
+                    _ = recentlyCompletedIds.remove(task.id)
+                }
+            }
         }
     }
 

@@ -1,4 +1,9 @@
 import Foundation
+import GRDB
+
+enum SyncStatusIndicator {
+    case idle, syncing, error(String)
+}
 
 @MainActor
 class GoogleTasksService: ObservableObject {
@@ -7,191 +12,209 @@ class GoogleTasksService: ObservableObject {
     @Published var allTags: [String] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
+    @Published var syncStatus: SyncStatusIndicator = .idle
 
-    // MARK: - Fetch all task lists and tasks
+    private let db = DatabaseManager.shared
+    private var taskListsObserver: AnyDatabaseCancellable?
+    private var tasksObserver: AnyDatabaseCancellable?
+    private var hasStartedObserving = false
+
+    // MARK: - Start Observing (called once on auth)
+
+    func startObserving(authService: GoogleAuthService) {
+        guard !hasStartedObserving else { return }
+        hasStartedObserving = true
+
+        // Show loading only if DB is empty (first launch)
+        let existingTasks = (try? db.fetchAllTasks()) ?? []
+        isLoading = existingTasks.isEmpty
+
+        // Subscribe to task lists from DB
+        taskListsObserver = db.observeAllTaskLists()
+            .start(in: db.pool, scheduling: .immediate) { [weak self] error in
+                Task { @MainActor in
+                    self?.errorMessage = error.localizedDescription
+                }
+            } onChange: { [weak self] records in
+                Task { @MainActor in
+                    self?.taskLists = records.map { $0.toGoogleTaskList() }
+                    self?.rebuildTaskItems()
+                }
+            }
+
+        // Subscribe to tasks from DB
+        tasksObserver = db.observeAllTasks()
+            .start(in: db.pool, scheduling: .immediate) { [weak self] error in
+                Task { @MainActor in
+                    self?.errorMessage = error.localizedDescription
+                }
+            } onChange: { [weak self] records in
+                Task { @MainActor in
+                    guard let self else { return }
+                    self.cachedTaskRecords = records
+                    self.rebuildTaskItems()
+                    self.isLoading = false
+                }
+            }
+
+        // Start sync engine
+        Task {
+            await SyncEngine.shared.configure(authService: authService)
+            await SyncEngine.shared.triggerSync()
+        }
+    }
+
+    private var cachedTaskRecords: [TaskRecord] = []
+
+    private func rebuildTaskItems() {
+        let listTitleById = Dictionary(uniqueKeysWithValues: taskLists.map { ($0.id, $0.title) })
+        allTasks = cachedTaskRecords
+            .compactMap { record -> TaskItem? in
+                guard let listName = listTitleById[record.listId] else { return nil }
+                return record.toTaskItem(listName: listName)
+            }
+            .sorted { ($0.updated ?? .distantPast) > ($1.updated ?? .distantPast) }
+        allTags = computeAllTags()
+    }
+
+    // MARK: - Fetch All (now triggers sync)
 
     func fetchAll(authService: GoogleAuthService) async {
-        isLoading = true
-        errorMessage = nil
-
-        guard let token = await authService.getValidToken() else {
-            errorMessage = "Not authenticated"
-            isLoading = false
+        if !hasStartedObserving {
+            startObserving(authService: authService)
             return
         }
-
-        do {
-            let listsURL = URL(string: "\(Config.tasksBaseURL)/users/@me/lists?maxResults=100")!
-            let listsData = try await authorizedRequest(url: listsURL, token: token)
-            let listsResponse = try JSONDecoder().decode(GoogleTaskListsResponse.self, from: listsData)
-            self.taskLists = listsResponse.items ?? []
-
-            var allItems: [TaskItem] = []
-            for list in self.taskLists {
-                let tasks = try await fetchTasksForList(listId: list.id, listName: list.title, token: token)
-                allItems.append(contentsOf: tasks)
-            }
-
-            self.allTasks = allItems.sorted { ($0.updated ?? .distantPast) > ($1.updated ?? .distantPast) }
-            self.allTags = computeAllTags()
-        } catch {
-            errorMessage = "Failed to load tasks: \(error.localizedDescription)"
-        }
-
-        isLoading = false
+        syncStatus = .syncing
+        await SyncEngine.shared.triggerSync()
+        syncStatus = .idle
     }
 
-    // MARK: - Fetch tasks for a single list
-
-    private func fetchTasksForList(listId: String, listName: String, token: String) async throws -> [TaskItem] {
-        var allItems: [TaskItem] = []
-        var pageToken: String?
-
-        repeat {
-            var urlStr = "\(Config.tasksBaseURL)/lists/\(listId)/tasks?maxResults=100&showCompleted=true&showHidden=true"
-            if let pt = pageToken {
-                urlStr += "&pageToken=\(pt)"
-            }
-
-            let url = URL(string: urlStr)!
-            let data = try await authorizedRequest(url: url, token: token)
-            let response = try JSONDecoder().decode(GoogleTasksResponse.self, from: data)
-
-            let tasks = (response.items ?? []).map { TaskItem(from: $0, listId: listId, listName: listName) }
-            allItems.append(contentsOf: tasks)
-            pageToken = response.nextPageToken
-        } while pageToken != nil
-
-        return allItems
-    }
-
-    // MARK: - Toggle task completion
+    // MARK: - Toggle Task (local-first)
 
     func toggleTask(_ task: TaskItem, authService: GoogleAuthService) {
-        // Optimistic update: flip status immediately in the UI
-        if let index = allTasks.firstIndex(where: { $0.id == task.id }) {
-            let old = allTasks[index]
-            let toggled = TaskItem(toggling: old)
-            allTasks[index] = toggled
-            allTags = computeAllTags()
-        }
-
-        // Sync to Google Tasks API in the background
-        Task {
-            guard let token = await authService.getValidToken() else { return }
-
-            let newStatus = task.isCompleted ? "needsAction" : "completed"
-            let url = URL(string: "\(Config.tasksBaseURL)/lists/\(task.listId)/tasks/\(task.id)")!
-
-            var request = URLRequest(url: url)
-            request.httpMethod = "PATCH"
-            request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-            request.setValue(Config.quotaProject, forHTTPHeaderField: "x-goog-user-project")
-            request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-            let body: [String: Any] = ["id": task.id, "status": newStatus]
-            request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
-            do {
-                let (_, response) = try await URLSession.shared.data(for: request)
-                if let http = response as? HTTPURLResponse, http.statusCode != 200 {
-                    // Revert on failure
-                    await fetchAll(authService: authService)
-                    errorMessage = "Failed to update task"
-                }
-            } catch {
-                await fetchAll(authService: authService)
-                errorMessage = "Failed to update task"
-            }
-        }
+        let newStatus = task.isCompleted ? "needsAction" : "completed"
+        let now = TaskRecord.nowISO8601()
+        let record = TaskRecord(
+            id: task.id,
+            listId: task.listId,
+            title: task.title,
+            notes: task.notes,
+            status: newStatus,
+            due: task.due.map { ISO8601DateFormatter().string(from: $0) },
+            updated: task.updated.map { ISO8601DateFormatter().string(from: $0) },
+            completed: task.isCompleted ? nil : now,
+            syncStatus: .pendingUpdate,
+            localUpdated: now
+        )
+        try? db.upsertTask(record)
     }
 
-    // MARK: - Update task
-
-    func updateTask(task: TaskItem, title: String, notes: String?, due: String?, authService: GoogleAuthService) async -> Bool {
-        guard let token = await authService.getValidToken() else {
-            errorMessage = "Not authenticated"
-            return false
-        }
-
-        let url = URL(string: "\(Config.tasksBaseURL)/lists/\(task.listId)/tasks/\(task.id)")!
-
-        var request = URLRequest(url: url)
-        request.httpMethod = "PATCH"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(Config.quotaProject, forHTTPHeaderField: "x-goog-user-project")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-
-        var body: [String: Any] = ["id": task.id, "title": title]
-        body["notes"] = notes ?? ""
-        if let due = due {
-            body["due"] = due
-        }
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-
-        do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if let http = response as? HTTPURLResponse, http.statusCode == 200 {
-                await fetchAll(authService: authService)
-                return true
-            } else {
-                errorMessage = "Failed to update task"
-                return false
-            }
-        } catch {
-            errorMessage = "Failed to update task: \(error.localizedDescription)"
-            return false
-        }
-    }
-
-    // MARK: - Create task
+    // MARK: - Create Task (local-first)
 
     func createTask(title: String, notes: String?, listId: String, due: String?, authService: GoogleAuthService) async -> Bool {
-        guard let token = await authService.getValidToken() else {
-            errorMessage = "Not authenticated"
+        let tempId = UUID().uuidString
+        let now = TaskRecord.nowISO8601()
+        let record = TaskRecord(
+            id: tempId,
+            listId: listId,
+            title: title,
+            notes: notes,
+            status: "needsAction",
+            due: due,
+            syncStatus: .pendingCreate,
+            localUpdated: now
+        )
+        do {
+            try db.upsertTask(record)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
             return false
         }
+    }
 
-        let url = URL(string: "\(Config.tasksBaseURL)/lists/\(listId)/tasks")!
+    // MARK: - Update Task (local-first)
 
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(Config.quotaProject, forHTTPHeaderField: "x-goog-user-project")
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+    func updateTask(task: TaskItem, title: String, notes: String?, due: String?, authService: GoogleAuthService) async -> Bool {
+        let now = TaskRecord.nowISO8601()
+        let record = TaskRecord(
+            id: task.id,
+            listId: task.listId,
+            title: title,
+            notes: notes,
+            status: task.isCompleted ? "completed" : "needsAction",
+            due: due,
+            updated: task.updated.map { ISO8601DateFormatter().string(from: $0) },
+            completed: task.completed.map { ISO8601DateFormatter().string(from: $0) },
+            syncStatus: .pendingUpdate,
+            localUpdated: now
+        )
+        do {
+            try db.upsertTask(record)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
 
-        var body: [String: Any] = ["title": title]
-        if let notes = notes, !notes.isEmpty { body["notes"] = notes }
-        if let due = due { body["due"] = due }
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+    // MARK: - Move Task (local-first: delete old + create new)
+
+    func moveTask(task: TaskItem, toListId: String, title: String, notes: String?, due: String?, authService: GoogleAuthService) async -> Bool {
+        let now = TaskRecord.nowISO8601()
+
+        // Mark old task for deletion
+        let deleteRecord = TaskRecord(
+            id: task.id,
+            listId: task.listId,
+            title: task.title,
+            notes: task.notes,
+            status: task.isCompleted ? "completed" : "needsAction",
+            due: task.due.map { ISO8601DateFormatter().string(from: $0) },
+            syncStatus: .pendingDelete,
+            localUpdated: now
+        )
+
+        // Create new task in target list
+        let newRecord = TaskRecord(
+            id: UUID().uuidString,
+            listId: toListId,
+            title: title,
+            notes: notes,
+            status: "needsAction",
+            due: due,
+            syncStatus: .pendingCreate,
+            localUpdated: now
+        )
 
         do {
-            let (_, response) = try await URLSession.shared.data(for: request)
-            if let http = response as? HTTPURLResponse, http.statusCode == 200 {
-                await fetchAll(authService: authService)
-                return true
-            } else {
-                errorMessage = "Failed to create task"
-                return false
-            }
+            try db.upsertTask(deleteRecord)
+            try db.upsertTask(newRecord)
+            return true
         } catch {
-            errorMessage = "Failed to create task: \(error.localizedDescription)"
+            errorMessage = error.localizedDescription
+            return false
+        }
+    }
+
+    // MARK: - Create List (local-first)
+
+    func createList(title: String) -> Bool {
+        let record = TaskListRecord(
+            id: UUID().uuidString,
+            title: title,
+            syncStatus: .pendingCreate
+        )
+        do {
+            try db.upsertTaskList(record)
+            return true
+        } catch {
+            errorMessage = error.localizedDescription
             return false
         }
     }
 
     // MARK: - Helpers
-
-    private func authorizedRequest(url: URL, token: String) async throws -> Data {
-        var request = URLRequest(url: url)
-        request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-        request.setValue(Config.quotaProject, forHTTPHeaderField: "x-goog-user-project")
-        let (data, response) = try await URLSession.shared.data(for: request)
-        if let http = response as? HTTPURLResponse, http.statusCode == 401 {
-            throw URLError(.userAuthenticationRequired)
-        }
-        return data
-    }
 
     private func computeAllTags() -> [String] {
         var tagCounts: [String: Int] = [:]

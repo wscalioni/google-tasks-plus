@@ -6,14 +6,25 @@ struct EditTaskView: View {
     @Binding var isPresented: Bool
     let task: TaskItem
 
-    @State private var title: String = ""
-    @State private var notes: String = ""
-    @State private var selectedListId: String = ""
-    @State private var hasDueDate: Bool = false
-    @State private var dueDate: Date = Date()
-    @State private var selectedTags: Set<String> = []
+    @State private var title: String
+    @State private var notes: String
+    @State private var selectedListId: String
+    @State private var hasDueDate: Bool
+    @State private var dueDate: Date
+    @State private var selectedTags: Set<String>
     @State private var isSaving = false
     @State private var errorMessage: String?
+
+    init(isPresented: Binding<Bool>, task: TaskItem) {
+        self._isPresented = isPresented
+        self.task = task
+        self._title = State(initialValue: task.title)
+        self._notes = State(initialValue: task.notesWithoutTags)
+        self._selectedListId = State(initialValue: task.listId)
+        self._hasDueDate = State(initialValue: task.due != nil)
+        self._dueDate = State(initialValue: task.due ?? Date())
+        self._selectedTags = State(initialValue: Set(task.tags))
+    }
 
     var composedNotes: String {
         composeNotes(notes: notes, tags: selectedTags)
@@ -59,6 +70,26 @@ struct EditTaskView: View {
             HStack {
                 Spacer()
                 Button("Cancel") { isPresented = false }
+                if !task.isCompleted {
+                    Button(action: completeAndClose) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 13))
+                            Text("Complete")
+                        }
+                        .foregroundColor(DB.success)
+                        .padding(.horizontal, 16)
+                        .padding(.vertical, 8)
+                        .background(DB.success.opacity(0.1))
+                        .cornerRadius(6)
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 6)
+                                .stroke(DB.success.opacity(0.3), lineWidth: 1)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(isSaving)
+                }
                 Button(action: save) {
                     HStack(spacing: 6) {
                         if isSaving { ProgressView().controlSize(.small) }
@@ -79,28 +110,42 @@ struct EditTaskView: View {
             .background(DB.background)
         }
         .frame(width: 480, height: 620)
-        .onAppear {
-            title = task.title
-            notes = task.notesWithoutTags
-            selectedListId = task.listId
-            hasDueDate = task.due != nil
-            dueDate = task.due ?? Date()
-            selectedTags = Set(task.tags)
-        }
+    }
+
+    private func completeAndClose() {
+        tasksService.toggleTask(task, authService: authService)
+        isPresented = false
     }
 
     private func save() {
+        let targetListId = selectedListId
+        let listChanged = targetListId != task.listId
         isSaving = true
         errorMessage = nil
         Task {
             let dueString: String? = hasDueDate ? ISO8601DateFormatter().string(from: dueDate) : nil
-            let success = await tasksService.updateTask(
-                task: task,
-                title: title,
-                notes: composedNotes.isEmpty ? nil : composedNotes,
-                due: dueString,
-                authService: authService
-            )
+            let notesValue = composedNotes.isEmpty ? nil : composedNotes
+
+            let success: Bool
+            if listChanged {
+                success = await tasksService.moveTask(
+                    task: task,
+                    toListId: targetListId,
+                    title: title,
+                    notes: notesValue,
+                    due: dueString,
+                    authService: authService
+                )
+            } else {
+                success = await tasksService.updateTask(
+                    task: task,
+                    title: title,
+                    notes: notesValue,
+                    due: dueString,
+                    authService: authService
+                )
+            }
+
             isSaving = false
             if success {
                 isPresented = false

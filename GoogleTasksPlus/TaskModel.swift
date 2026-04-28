@@ -57,40 +57,17 @@ struct TaskItem: Identifiable {
         return TagParser.stripTags(from: notes).trimmingCharacters(in: .whitespacesAndNewlines)
     }
 
-    private static let isoFormatter: ISO8601DateFormatter = {
-        let f = ISO8601DateFormatter()
-        f.formatOptions = [.withInternetDateTime, .withFractionalSeconds]
-        return f
-    }()
-
-    private static func parseDate(_ string: String?) -> Date? {
-        guard let string = string else { return nil }
-        return isoFormatter.date(from: string) ?? ISO8601DateFormatter().date(from: string)
-    }
-
-    init(from googleTask: GoogleTask, listId: String, listName: String) {
-        self.id = googleTask.id
-        self.title = googleTask.title
-        self.notes = googleTask.notes
-        self.isCompleted = googleTask.status == "completed"
+    init(id: String, title: String, notes: String?, isCompleted: Bool, due: Date?,
+         tags: [String], listId: String, listName: String, updated: Date?, completed: Date?) {
+        self.id = id
+        self.title = title
+        self.notes = notes
+        self.isCompleted = isCompleted
+        self.due = due
+        self.tags = tags
         self.listId = listId
         self.listName = listName
-        self.tags = TagParser.extractTags(from: googleTask.notes)
-        self.due = Self.parseDate(googleTask.due)
-        self.updated = Self.parseDate(googleTask.updated)
-        self.completed = Self.parseDate(googleTask.completed)
-    }
-
-    init(toggling other: TaskItem) {
-        self.id = other.id
-        self.title = other.title
-        self.notes = other.notes
-        self.isCompleted = !other.isCompleted
-        self.due = other.due
-        self.tags = other.tags
-        self.listId = other.listId
-        self.listName = other.listName
-        self.updated = other.updated
-        self.completed = other.isCompleted ? nil : Date()
+        self.updated = updated
+        self.completed = completed
     }
 }

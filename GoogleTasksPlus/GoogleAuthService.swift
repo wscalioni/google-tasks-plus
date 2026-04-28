@@ -11,22 +11,23 @@ class GoogleAuthService: ObservableObject {
     private var cachedToken: String?
     private var tokenExpiry: Date?
 
+    private static let adcPath = "\(NSHomeDirectory())/.config/gcloud/application_default_credentials.json"
+
     init() {
         Task { await checkAuth() }
     }
 
-    // MARK: - Get token via gcloud ADC
+    // MARK: - Get token via ADC refresh
 
     func getValidToken() async -> String? {
-        // Return cached token if still valid (tokens last ~60 min, refresh at 50 min)
         if let token = cachedToken, let expiry = tokenExpiry, Date() < expiry {
             return token
         }
 
         do {
-            let token = try await fetchTokenFromGcloud()
+            let token = try await refreshAccessToken()
             cachedToken = token
-            tokenExpiry = Date().addingTimeInterval(50 * 60) // cache for 50 minutes
+            tokenExpiry = Date().addingTimeInterval(50 * 60)
             isAuthenticated = true
             return token
         } catch {
@@ -43,8 +44,7 @@ class GoogleAuthService: ObservableObject {
         errorMessage = nil
 
         if let token = await getValidToken() {
-            // Verify token works by calling tokeninfo
-            var request = URLRequest(url: URL(string: "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=\(token)")!)
+            let request = URLRequest(url: URL(string: "https://www.googleapis.com/oauth2/v1/tokeninfo?access_token=\(token)")!)
             if let (data, _) = try? await URLSession.shared.data(for: request) {
                 if let info = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
                     userEmail = info["email"] as? String
@@ -63,28 +63,13 @@ class GoogleAuthService: ObservableObject {
         errorMessage = nil
 
         Task {
-            do {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-                process.arguments = [Config.googleAuthScript, "login"]
+            // First try reading existing ADC credentials
+            cachedToken = nil
+            tokenExpiry = nil
+            await checkAuth()
 
-                let pipe = Pipe()
-                process.standardOutput = pipe
-                process.standardError = pipe
-
-                try process.run()
-                process.waitUntilExit()
-
-                if process.terminationStatus == 0 {
-                    cachedToken = nil
-                    tokenExpiry = nil
-                    await checkAuth()
-                } else {
-                    let output = String(data: pipe.fileHandleForReading.readDataToEndOfFile(), encoding: .utf8) ?? ""
-                    errorMessage = "Authentication failed. Please run:\npython3 \(Config.googleAuthScript) login\nin your terminal."
-                }
-            } catch {
-                errorMessage = "Could not launch auth: \(error.localizedDescription)"
+            if !isAuthenticated {
+                errorMessage = "No valid credentials found.\nPlease run in your terminal:\ngcloud auth application-default login"
             }
             isLoading = false
         }
@@ -99,33 +84,45 @@ class GoogleAuthService: ObservableObject {
         userEmail = nil
     }
 
-    // MARK: - Private
+    // MARK: - Private: read ADC file and refresh the token
 
-    private func fetchTokenFromGcloud() async throws -> String {
-        let process = Process()
-        process.executableURL = URL(fileURLWithPath: "/usr/bin/python3")
-        process.arguments = [Config.googleAuthScript, "token"]
+    private func refreshAccessToken() async throws -> String {
+        let adcURL = URL(fileURLWithPath: Self.adcPath)
 
-        let pipe = Pipe()
-        process.standardOutput = pipe
-        process.standardError = Pipe()
-
-        try process.run()
-        process.waitUntilExit()
-
-        guard process.terminationStatus == 0 else {
+        guard FileManager.default.fileExists(atPath: Self.adcPath) else {
             throw NSError(domain: "GoogleAuth", code: 1,
-                         userInfo: [NSLocalizedDescriptionKey: "gcloud token fetch failed. Run: python3 \(Config.googleAuthScript) login"])
+                userInfo: [NSLocalizedDescriptionKey: "No ADC credentials file found at \(Self.adcPath).\nRun: gcloud auth application-default login"])
         }
 
-        let data = pipe.fileHandleForReading.readDataToEndOfFile()
-        let token = String(data: data, encoding: .utf8)?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
-
-        guard !token.isEmpty else {
+        let adcData = try Data(contentsOf: adcURL)
+        guard let adc = try JSONSerialization.jsonObject(with: adcData) as? [String: Any],
+              let clientId = adc["client_id"] as? String,
+              let clientSecret = adc["client_secret"] as? String,
+              let refreshToken = adc["refresh_token"] as? String else {
             throw NSError(domain: "GoogleAuth", code: 2,
-                         userInfo: [NSLocalizedDescriptionKey: "Empty token returned"])
+                userInfo: [NSLocalizedDescriptionKey: "Invalid ADC credentials file format"])
         }
 
-        return token
+        var request = URLRequest(url: URL(string: "https://oauth2.googleapis.com/token")!)
+        request.httpMethod = "POST"
+        request.setValue("application/x-www-form-urlencoded", forHTTPHeaderField: "Content-Type")
+
+        let body = "client_id=\(clientId)&client_secret=\(clientSecret)&refresh_token=\(refreshToken)&grant_type=refresh_token"
+        request.httpBody = body.data(using: .utf8)
+
+        let (data, response) = try await URLSession.shared.data(for: request)
+
+        guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+            throw NSError(domain: "GoogleAuth", code: 3,
+                userInfo: [NSLocalizedDescriptionKey: "Token refresh failed. Run: gcloud auth application-default login"])
+        }
+
+        guard let json = try JSONSerialization.jsonObject(with: data) as? [String: Any],
+              let accessToken = json["access_token"] as? String, !accessToken.isEmpty else {
+            throw NSError(domain: "GoogleAuth", code: 4,
+                userInfo: [NSLocalizedDescriptionKey: "Empty access token in refresh response"])
+        }
+
+        return accessToken
     }
 }
